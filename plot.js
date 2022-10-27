@@ -1,14 +1,15 @@
 // Identify the subimage size in px
-const IMAGE_SIZES = { width: 32, height: 32 };
+const IMAGE_SIZE = { width: 64, height: 64 };
 // Identify the total number of cols & rows in the image atlas
-const ATLAS = { width: 1280, height: 1280, cols: 10, rows: 10 };
+const ATLAS = { width: 2048, height: 2048, cols: 32, rows: 32 };
+const SPACING = [500, 500, 200];
 // scene setup
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 const textureLoader = new THREE.TextureLoader();
 
-camera.position.set(0, 1, 400);
+camera.position.set(0, 1, 10000);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
@@ -30,7 +31,10 @@ function getImageGeometryForAtlas(data) {
     let indices = []
 
     for (let i = 0; i < atlas.cols * atlas.rows; i++) {
-        const { x, y, z } = coords[i]
+        let { x, y, z } = coords[i]
+        x *= SPACING[0]
+        y *= SPACING[1]
+        z *= SPACING[2]
         vertices.push(
             x, y, z, // bottom left
             x + imageSize.width, y, z, // bottom right
@@ -53,18 +57,20 @@ function getImageGeometryForAtlas(data) {
         // Identify this subimage's offset in the x dimension
         // An xOffset of 0 means the subimage starts flush with
         // the left-hand edge of the atlas
-        const xOffset = (i % 10) * (imageSize.width / atlas.width);
+        const xOffset = (i % ATLAS.cols) * (imageSize.width / atlas.width);
         // Identify the subimage's offset in the y dimension
         // A yOffset of 0 means the subimage starts flush with
         // the top edge of the atlas
-        const yOffset = Math.floor(i / 10) * (imageSize.height / atlas.height);
+        const yOffset = Math.floor(i / ATLAS.rows) * (imageSize.height / atlas.height);
         // set the uvs for this box; these identify the following corners:
         // lower-left, lower-right, upper-right, upper-left
+        const xGlobalOffset = ATLAS.cols / 1000;
+        const yGlobalOffset = ATLAS.rows / 1000;
         uvs.push(
             xOffset, yOffset,
-            xOffset + .1, yOffset,
-            xOffset + .1, yOffset + .1,
-            xOffset, yOffset + .1,
+            xOffset + xGlobalOffset, yOffset,
+            xOffset + xGlobalOffset, yOffset + yGlobalOffset,
+            xOffset, yOffset + yGlobalOffset,
         )
     }
     // in the first argument per vertex
@@ -84,44 +90,45 @@ function getImageMaterialFromUrl(url) {
     return material
 }
 
-// var url = 'https://s3.amazonaws.com/duhaime/blog/tsne-webgl/assets/cat.jpg';
+function addMeshForAtlas(coords, url){
+    let imageGeometry = getImageGeometryForAtlas({
+        imageSize: IMAGE_SIZE,
+        coords,
+        atlas: ATLAS
+    })
 
-let coords = []
 
-for (let i = 0; i < 100; i++) {
-    coords.push(
-        {
-            x: getRandomInt(),
-            y: getRandomInt(),
-            z: -400
-        }
-    )
+    let imageMaterial = getImageMaterialFromUrl(url)
+
+    // combine the image geometry and material into a mesh
+    var mesh = new THREE.Mesh(imageGeometry, imageMaterial);
+
+    // set the position of the image mesh in the x,y,z dimensions
+    mesh.position.set(coords[0].x, coords[0].y, coords[0].z)
+
+    // add the image to the scene
+    scene.add(mesh);
 }
 
-let imageGeometry = getImageGeometryForAtlas({
-    imageSize: { width: 128, height: 128 },
-    coords,
-    atlas: ATLAS
-})
+for(let i = 1; i < 39; i++){
+    fetch(`./montages/points/${i}/points.json`)
+        .then((response) => response.json())
+        .then((json) => addMeshForAtlas(json, `/montages/montages/${i}/2048-img-atlas.jpg`));
+}
 
-var url = '/100-img-atlas.jpg'
+var controls = new THREE.TrackballControls(camera, renderer.domElement);
 
-let imageMaterial = getImageMaterialFromUrl(url)
-
-// combine the image geometry and material into a mesh
-var mesh = new THREE.Mesh(imageGeometry, imageMaterial);
-
-// set the position of the image mesh in the x,y,z dimensions
-mesh.position.set(0, 0, 0)
-
-// add the image to the scene
-scene.add(mesh);
-
+window.addEventListener('resize', function() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  controls.handleResize();
+});
 
 function animate() {
     requestAnimationFrame(animate);
-    // mesh.rotation.x += 0.01;
-    // mesh.rotation.y += 0.01;
     renderer.render(scene, camera);
+    controls.update();
+
 }
 animate();
