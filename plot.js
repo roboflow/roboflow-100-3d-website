@@ -1,5 +1,5 @@
 // Identify the subimage size in px
-const IMAGE_SIZES = { width: 128, height: 128 };
+const IMAGE_SIZES = { width: 32, height: 32 };
 // Identify the total number of cols & rows in the image atlas
 const ATLAS = { width: 1280, height: 1280, cols: 10, rows: 10 };
 // scene setup
@@ -8,12 +8,11 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 const textureLoader = new THREE.TextureLoader();
 
+camera.position.set(0, 1, 400);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-// add a light
-// var light = new THREE.PointLight(0xffffff, .7, 0);
-// light.position.set(0, 0, 100);
-// scene.add(light)
+
+var materials = {};
 
 function getRandomInt() {
     var val = Math.random() * 500;
@@ -22,27 +21,21 @@ function getRandomInt() {
         : val;
 }
 
-
-function createImageGeometryForAtlas(data) {
-    let { imageSize, atlas } = data
+function getImageGeometryForAtlas(data) {
+    let { imageSize, coords, atlas } = data
     const geometry = new THREE.BufferGeometry();
-    const verticesLenght = 4
 
     let vertices = []
     let uvs = []
     let indices = []
 
     for (let i = 0; i < atlas.cols * atlas.rows; i++) {
-        coords = {
-            x: getRandomInt(),
-            y: getRandomInt(),
-            z: -400
-        };
+        const { x, y, z } = coords[i]
         vertices.push(
-            coords.x, coords.y, coords.z, // bottom left
-            coords.x + imageSize.width, coords.y, coords.z, // bottom right
-            coords.x + imageSize.width, coords.y + imageSize.height, coords.z, // upper right
-            coords.x, coords.y + imageSize.height, coords.z, // upper left,
+            x, y, z, // bottom left
+            x + imageSize.width, y, z, // bottom right
+            x + imageSize.width, y + imageSize.height, z, // upper right
+            x, y + imageSize.height, z, // upper left,
 
         )
         // indices = sequence of index positions in `vertices` to use as vertices
@@ -74,8 +67,6 @@ function createImageGeometryForAtlas(data) {
             xOffset, yOffset + .1,
         )
     }
-
-    console.log(vertices)
     // in the first argument per vertex
     geometry.setIndex(indices)
     geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
@@ -84,41 +75,7 @@ function createImageGeometryForAtlas(data) {
 }
 
 
-function createImageGeometry(data) {
-    let { imageSize, coords } = data;
-    const geometry = new THREE.BufferGeometry();
-    // Add one vertex for each corner of the image, using the 
-    // following order: lower left, lower right, upper right, upper left
-    var vertices = new Float32Array([
-        coords.x, coords.y, coords.z, // bottom left
-        coords.x + imageSize.width, coords.y, coords.z, // bottom right
-        coords.x + imageSize.width, coords.y + imageSize.height, coords.z, // upper right
-        coords.x, coords.y + imageSize.height, coords.z, // upper left,
-
-    ])
-    // set the uvs for this box; these identify the following corners:
-    // lower-left, lower-right, upper-right, upper-left
-    var uvs = new Float32Array([
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-    ])
-    // indices = sequence of index positions in `vertices` to use as vertices
-    // we make two triangles but only use 4 distinct vertices in the object
-    // the second argument to THREE.BufferAttribute is the number of elements
-    const indices = [0, 1, 2, 0, 2, 3]
-    // in the first argument per vertex
-    geometry.setIndex(indices)
-    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2))
-
-    return geometry
-}
-
-
-
-function crateImageMaterialFromUrl(url) {
+function getImageMaterialFromUrl(url) {
     // Load an image file into a MeshBasicMaterial
     const material = new THREE.MeshBasicMaterial({
         map: textureLoader.load(url)
@@ -129,15 +86,27 @@ function crateImageMaterialFromUrl(url) {
 
 // var url = 'https://s3.amazonaws.com/duhaime/blog/tsne-webgl/assets/cat.jpg';
 
+let coords = []
 
-let imageGeometry = createImageGeometryForAtlas({
+for (let i = 0; i < 100; i++) {
+    coords.push(
+        {
+            x: getRandomInt(),
+            y: getRandomInt(),
+            z: -400
+        }
+    )
+}
+
+let imageGeometry = getImageGeometryForAtlas({
     imageSize: { width: 128, height: 128 },
-    coords: { x: -5, y: -3.75, z: 0 },
+    coords,
     atlas: ATLAS
 })
+
 var url = '/100-img-atlas.jpg'
 
-let imageMaterial = crateImageMaterialFromUrl(url)
+let imageMaterial = getImageMaterialFromUrl(url)
 
 // combine the image geometry and material into a mesh
 var mesh = new THREE.Mesh(imageGeometry, imageMaterial);
@@ -148,8 +117,6 @@ mesh.position.set(0, 0, 0)
 // add the image to the scene
 scene.add(mesh);
 
-
-camera.position.set(0, 1, 400);
 
 function animate() {
     requestAnimationFrame(animate);
