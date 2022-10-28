@@ -2,9 +2,22 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>My first three.js app</title>
+		<body>
+	
+	<form>
+		<input type="checkbox" id="dims-2d" name="dims-2d" value="dims-2d">
+		<label  for="dims-2d">2D</label><br>
+		<input type="checkbox" id="dims-3d" name="dims-3d" value="dims-3d" >
+		<label for="dims-3d">3D</label><br>
+	</form>
+			<canvas id="canvas"/>
+		</body>
 		<style>
-			body { margin: 0; }
+			body { margin: 0; width: 100vw; height: 100vh;}
+			#canvas {
+				height: 100%;
+				width: 100%;
+			}
 		</style>
 	</head>
 	<body>

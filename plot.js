@@ -1,17 +1,19 @@
-// Identify the subimage size in px
-const IMAGE_SIZE = { width: 64, height: 64 };
-// Identify the total number of cols & rows in the image atlas
-const ATLAS = { width: 2048, height: 2048, cols: 32, rows: 32 };
-const SPACING = [500, 500, 200];
+var config = {
+    dims: 2,
+    spacing: [200, 200, 1],
+    imageSize: { width: 64, height: 64 },
+    atlas: { width: 2048, height: 2048, cols: 32, rows: 32 },
+    addZNoise: true
+}
+
 // scene setup
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100000);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000000);
+const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: document.querySelector("#canvas")});
 const textureLoader = new THREE.TextureLoader();
 
 camera.position.set(0, 1, 10000);
 renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
 
 var materials = {};
 
@@ -32,9 +34,9 @@ function getImageGeometryForAtlas(data) {
 
     for (let i = 0; i < atlas.cols * atlas.rows; i++) {
         let { x, y, z } = coords[i]
-        x *= SPACING[0]
-        y *= SPACING[1]
-        z *= SPACING[2]
+        x *= config.spacing[0]
+        y *= config.spacing[1]
+        z *= config.spacing[2]
         vertices.push(
             x, y, z, // bottom left
             x + imageSize.width, y, z, // bottom right
@@ -57,15 +59,15 @@ function getImageGeometryForAtlas(data) {
         // Identify this subimage's offset in the x dimension
         // An xOffset of 0 means the subimage starts flush with
         // the left-hand edge of the atlas
-        const xOffset = (i % ATLAS.cols) * (imageSize.width / atlas.width);
+        const xOffset = (i % config.atlas.cols) * (imageSize.width / atlas.width);
         // Identify the subimage's offset in the y dimension
         // A yOffset of 0 means the subimage starts flush with
         // the top edge of the atlas
-        const yOffset = Math.floor(i / ATLAS.rows) * (imageSize.height / atlas.height);
+        const yOffset = Math.floor(i / config.atlas.rows) * (imageSize.height / atlas.height);
         // set the uvs for this box; these identify the following corners:
         // lower-left, lower-right, upper-right, upper-left
-        const xGlobalOffset = ATLAS.cols / 1000;
-        const yGlobalOffset = ATLAS.rows / 1000;
+        const xGlobalOffset = config.atlas.cols / 1000;
+        const yGlobalOffset = config.atlas.rows / 1000;
         uvs.push(
             xOffset, yOffset,
             xOffset + xGlobalOffset, yOffset,
@@ -92,9 +94,9 @@ function getImageMaterialFromUrl(url) {
 
 function addMeshForAtlas(coords, url){
     let imageGeometry = getImageGeometryForAtlas({
-        imageSize: IMAGE_SIZE,
+        imageSize: config.imageSize,
         coords,
-        atlas: ATLAS
+        atlas: config.atlas
     })
 
 
@@ -110,25 +112,73 @@ function addMeshForAtlas(coords, url){
     scene.add(mesh);
 }
 
-for(let i = 1; i < 39; i++){
-    fetch(`./montages/points/${i}/points.json`)
-        .then((response) => response.json())
-        .then((json) => addMeshForAtlas(json, `/montages/montages/${i}/2048-img-atlas.jpg`));
+function addZNoise(data){
+    console.log("addZNoise")
+    for (let el of data){
+        el.z *= getRandomInt() / 10
+    }
+
+    return data
 }
 
-var controls = new THREE.TrackballControls(camera, renderer.domElement);
-
-window.addEventListener('resize', function() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize( window.innerWidth, window.innerHeight );
-  controls.handleResize();
-});
-
-function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
-    controls.update();
-
+function loadData({dims}){
+    while(scene.children.length > 0){ 
+        scene.remove(scene.children[0]); 
+    }
+    
+    for(let i = 1; i < 39; i++){
+        fetch(`./montages/${i}/reduced-tsne-k=${dims}-points.json`)
+            .then((response) => response.json())
+            .then((json) => config.addZNoise ? addZNoise(json) : json)
+            .then((json) => addMeshForAtlas(json, `/montages/${i}/2048-img-atlas.jpg`));
+    }
 }
-animate();
+
+function setUpUIControllers(){
+    document.querySelector("#dims-2d").addEventListener("click", 
+        (e) => {
+            document.querySelector("#dims-3d").checked = false
+            config.dims = 2
+            config.spacing = [200, 200, 1]
+            config.addZNoise = true
+            loadData(config)
+        }
+    )
+
+    document.querySelector("#dims-3d").addEventListener("click", 
+        (e) => {
+            document.querySelector("#dims-2d").checked = false
+            config.dims = 3
+            config.spacing = [200, 200, 200]
+            config.addZNoise = false
+            loadData(config)
+        }
+    )
+}
+
+function setupThreeJS(){
+    loadData(config)
+
+    var controls = new THREE.TrackballControls(camera, renderer.domElement);
+
+    window.addEventListener('resize', function() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        controls.handleResize();
+      });
+      
+    
+
+    function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+        controls.update();
+
+    }
+    animate()
+}
+
+
+setupThreeJS()
+setUpUIControllers()
