@@ -159,6 +159,7 @@ function setUpUIControllers(datasets) {
             config.addZNoise = true
             loadDatasets(config, datasets)
             camera.position.set(0, 0, 10000);
+            controls.update();
         }
     )
     //  switch to 3d
@@ -170,6 +171,7 @@ function setUpUIControllers(datasets) {
             config.addZNoise = false
             loadDatasets(config, datasets)
             camera.position.set(0, 0, 10000);
+            controls.update();
         }
     )
     // select dataset
@@ -210,7 +212,7 @@ function setUpUIControllers(datasets) {
 
 function setupThreeJS(datasets) {
     scene.background = new THREE.Color("#202020");
-    camera.position.set(0, 0, 5000);
+    camera.position.set(0, 0, 10000);
     renderer.setSize(window.innerWidth, window.innerHeight, false);
 
     loadDatasets(config, datasets)
