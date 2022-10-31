@@ -38,6 +38,12 @@ function getImageGeometryForAtlas(data) {
     const rows = Math.ceil(coords.length / config.atlas.cols)
     const atlasHeight = imageSize.height * rows
 
+    const xStepSize = (imageSize.width / atlas.width)
+    const yStepSize = (imageSize.height / atlasHeight)
+
+    const xGlobalOffset = imageSize.width /  config.atlas.width 
+    const yGlobalOffset = imageSize.height / atlasHeight
+
     for (let i = 0; i < coords.length; i++) {
         let { x, y, z } = coords[i]
         x *= config.spacing[0]
@@ -62,18 +68,14 @@ function getImageGeometryForAtlas(data) {
             indicesOffset + 2,
             indicesOffset + 3
         )
-        // Identify this subimage's offset in the x dimension
-        // An xOffset of 0 means the subimage starts flush with
-        // the left-hand edge of the atlas
-        const xOffset = (i % config.atlas.cols) * (imageSize.width / atlas.width)
-        // Identify the subimage's offset in the y dimension
-        // A yOffset of 0 means the subimage starts flush with
-        // the top edge of the atlas
-        const yOffset =  Math.floor(i / config.atlas.cols) * (imageSize.height / atlasHeight);
+        // This is the hardest part of all the code base
+        // find the number of columns and moltiply by how many unit of images we have
+        //  e.g, we are on the second column, we need to have xs in "atlas" coordinates
+        const xOffset = (i % config.atlas.cols) * xStepSize
+        // same for y
+        const yOffset =  Math.floor(i / config.atlas.cols) * yStepSize;
         // set the uvs for this box; these identify the following corners:
         // lower-left, lower-right, upper-right, upper-left
-        const xGlobalOffset = imageSize.width /  config.atlas.width 
-        const yGlobalOffset = imageSize.height / atlasHeight
         uvs.push(
             xOffset, yOffset,
             xOffset + xGlobalOffset, yOffset,
