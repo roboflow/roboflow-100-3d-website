@@ -1,21 +1,24 @@
+// shared config, used as a state that is passed around and edited on the fly
+// not the best way to manage state, but it works
 var config = {
     dims: 2,
     spacing: [200, 200, 1],
     imageSize: { width: 64, height: 64 },
-    atlas: { width: 2048, height: 2048, cols: 32, rows: 32 },
+    atlas: { width: 2048, height: 1024, cols: 32, rows: 16 },
     addZNoise: true
 }
 
 // scene setup
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000000);
-const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: document.querySelector("#canvas")});
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100000);
+const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: document.querySelector("#canvas") });
 const textureLoader = new THREE.TextureLoader();
 
-camera.position.set(0, 1, 10000);
-renderer.setSize(window.innerWidth, window.innerHeight);
+var meshes = {};
 
-var materials = {};
+function toogleLoader(){
+
+}
 
 function getRandomInt() {
     var val = Math.random() * 500;
@@ -31,12 +34,15 @@ function getImageGeometryForAtlas(data) {
     let vertices = []
     let uvs = []
     let indices = []
+    // console.log(coords.length, config.atlas.cols)
+    const rows = Math.ceil(coords.length / config.atlas.cols)
+    const atlasHeight = imageSize.height * rows
 
-    for (let i = 0; i < atlas.cols * atlas.rows; i++) {
+    for (let i = 0; i < coords.length; i++) {
         let { x, y, z } = coords[i]
         x *= config.spacing[0]
         y *= config.spacing[1]
-        z *= config.spacing[2]
+        z = (z + 50) * config.spacing[2]
         vertices.push(
             x, y, z, // bottom left
             x + imageSize.width, y, z, // bottom right
@@ -59,15 +65,15 @@ function getImageGeometryForAtlas(data) {
         // Identify this subimage's offset in the x dimension
         // An xOffset of 0 means the subimage starts flush with
         // the left-hand edge of the atlas
-        const xOffset = (i % config.atlas.cols) * (imageSize.width / atlas.width);
+        const xOffset = (i % config.atlas.cols) * (imageSize.width / atlas.width)
         // Identify the subimage's offset in the y dimension
         // A yOffset of 0 means the subimage starts flush with
         // the top edge of the atlas
-        const yOffset = Math.floor(i / config.atlas.rows) * (imageSize.height / atlas.height);
+        const yOffset =  Math.floor(i / config.atlas.cols) * (imageSize.height / atlasHeight);
         // set the uvs for this box; these identify the following corners:
         // lower-left, lower-right, upper-right, upper-left
-        const xGlobalOffset = config.atlas.cols / 1000;
-        const yGlobalOffset = config.atlas.rows / 1000;
+        const xGlobalOffset = imageSize.width /  config.atlas.width 
+        const yGlobalOffset = imageSize.height / atlasHeight
         uvs.push(
             xOffset, yOffset,
             xOffset + xGlobalOffset, yOffset,
@@ -86,13 +92,15 @@ function getImageGeometryForAtlas(data) {
 function getImageMaterialFromUrl(url) {
     // Load an image file into a MeshBasicMaterial
     const material = new THREE.MeshBasicMaterial({
-        map: textureLoader.load(url)
+        map: textureLoader.load(url),
+        transparent: true,
+
     });
 
     return material
 }
 
-function addMeshForAtlas(coords, url){
+function addMeshForAtlas(coords, url) {
     let imageGeometry = getImageGeometryForAtlas({
         imageSize: config.imageSize,
         coords,
@@ -110,65 +118,111 @@ function addMeshForAtlas(coords, url){
 
     // add the image to the scene
     scene.add(mesh);
+
+    return mesh
 }
 
-function addZNoise(data){
-    console.log("addZNoise")
-    for (let el of data){
+function addZNoise(data) {
+    for (let el of data) {
         el.z *= getRandomInt() / 10
     }
 
     return data
 }
 
-function loadData({dims}){
-    while(scene.children.length > 0){ 
-        scene.remove(scene.children[0]); 
+function loadDatasets({ dims }, datasets) {
+    while (scene.children.length > 0) {
+        scene.remove(scene.children[0]);
     }
-    
-    for(let i = 1; i < 39; i++){
-        fetch(`./montages/${i}/reduced-tsne-k=${dims}-points.json`)
+
+    for (let dataset of datasets) {
+        console.info(`Loading ${dataset}`)
+        fetch(`/static/montages/${dataset}/reduced-tsne-k=${dims}-points.json`)
             .then((response) => response.json())
             .then((json) => config.addZNoise ? addZNoise(json) : json)
-            .then((json) => addMeshForAtlas(json, `/montages/${i}/2048-img-atlas.jpg`));
+            .then((json) => {
+                mesh = addMeshForAtlas(json, `/static/montages/${dataset}/2048-img-atlas.jpg`)
+                meshes[dataset] = mesh
+            });
     }
 }
 
-function setUpUIControllers(){
-    document.querySelector("#dims-2d").addEventListener("click", 
+function setUpUIControllers(datasets) {
+    // switch to 2d
+    document.querySelector("#dims-2d").addEventListener("click",
         (e) => {
             document.querySelector("#dims-3d").checked = false
             config.dims = 2
             config.spacing = [200, 200, 1]
             config.addZNoise = true
-            loadData(config)
+            loadDatasets(config, datasets)
+            camera.position.set(0, 0, 10000);
         }
     )
-
-    document.querySelector("#dims-3d").addEventListener("click", 
+    //  switch to 3d
+    document.querySelector("#dims-3d").addEventListener("click",
         (e) => {
             document.querySelector("#dims-2d").checked = false
             config.dims = 3
             config.spacing = [200, 200, 200]
             config.addZNoise = false
-            loadData(config)
+            loadDatasets(config, datasets)
+            camera.position.set(0, 0, 10000);
         }
     )
+    // select dataset
+    const selector = document.querySelector("#dataset-selector")
+
+    for (let dataset of datasets){
+        const option = document.createElement('option');
+        option.value = dataset;
+        option.innerHTML = dataset;
+        selector.appendChild(option);
+    }
+
+    // handle logic when selected changes
+    selectedDataset = selector.value
+    selector.addEventListener("change", 
+    (e) => {
+        let newSelectedDataset = e.target.value
+        if (newSelectedDataset != selectedDataset) {
+            // little helped function
+            const setOpacity = (opacity, expectFor) => {
+                for(let key in meshes){
+                    if (key == expectFor) continue
+                    let mesh = meshes[key]
+                    mesh.material.opacity = opacity
+                }
+            }
+            // set opacity to 1 to everyone
+            setOpacity(1, null)
+            // if not selected "all", set 0.02 to everyone expect what we selected!
+            if(newSelectedDataset != "all") setOpacity(0.02, newSelectedDataset)
+            selectedDataset = newSelectedDataset
+            const mesh = meshes[newSelectedDataset]
+            // camera.position.set(5, 1, 10000);
+            console.info(`Switched to ${newSelectedDataset}`)
+        }
+    })
 }
 
-function setupThreeJS(){
-    loadData(config)
+function setupThreeJS(datasets) {
+    scene.background = new THREE.Color("#202020");
+    camera.position.set(0, 0, 5000);
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+
+    loadDatasets(config, datasets)
 
     var controls = new THREE.TrackballControls(camera, renderer.domElement);
 
-    window.addEventListener('resize', function() {
+    window.addEventListener('resize', function () {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setSize(window.innerWidth, window.innerHeight, false);
         controls.handleResize();
-      });
-      
-    
+    });
+
+
 
     function animate() {
         requestAnimationFrame(animate);
@@ -179,6 +233,14 @@ function setupThreeJS(){
     animate()
 }
 
+function setUp() {
+    fetch(`/static/datasets.json`)
+        .then((response) => response.json())
+        .then((datasets) => {
+            setupThreeJS(datasets)
+            setUpUIControllers(datasets)
+        })
 
-setupThreeJS()
-setUpUIControllers()
+}
+
+setUp()

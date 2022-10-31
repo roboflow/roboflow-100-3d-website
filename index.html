@@ -1,28 +1,102 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<body>
-	
-	<form>
-		<input type="checkbox" id="dims-2d" name="dims-2d" value="dims-2d">
-		<label  for="dims-2d">2D</label><br>
-		<input type="checkbox" id="dims-3d" name="dims-3d" value="dims-3d" >
-		<label for="dims-3d">3D</label><br>
-	</form>
-			<canvas id="canvas"/>
-		</body>
-		<style>
-			body { margin: 0; width: 100vw; height: 100vh;}
-			#canvas {
-				height: 100%;
-				width: 100%;
-			}
-		</style>
-	</head>
-	<body>
-		<script src="three.js"></script>
-		<script src="trackball-controls.js"></script>
-		<script src="plot.js"></script>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="http://fonts.googleapis.com/css?family=Roboto"
+      rel="stylesheet"
+      type="text/css"
+    />
+
+    <body>
+      <div id="sidebar">
+        <div class="container">
+          <h2>Roboflow 100 🚀</h2>
+          <div id="controllers">
+            <div class="flex cols tall">
+            <p>CLIP embeddings + TSNE</p>
+            <small>Dimensions</small>
+            <form>
+              <input
+                type="checkbox"
+                id="dims-2d"
+                name="dims-2d"
+                value="dims-2d"
+                checked
+              />
+              <label for="dims-2d">2D</label><br />
+              <input
+                type="checkbox"
+                id="dims-3d"
+                name="dims-3d"
+                value="dims-3d"
+              />
+              <label for="dims-3d">3D</label><br /><br />
+              <small>Dataset</small><br />
+              <select id="dataset-selector" name="dataset-selecto" value="All">
+                <option value="all">all</option>
+              </select>
+            </form>
+            <div class="spacer"></div>
+            <br /><br /><br /><br />
+            <small>Hosted with 💜 by <a href="https://roboflow.com/">Roboflow</a></small>
+          </div>
+        </div>
+      </div>
+
+      </div>
+      <canvas id="canvas" />
+    </body>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Roboto", sans-serif;
+        max-height: 100vh;
+      }
+      #sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 300px;
+        height: 100vh;
+        /* z-index: 999; */
+        background-color: white;
+      }
+      #canvas {
+        width: 100%;
+        height: 100%;
+      }
+      #dataset-selector {
+        min-width: 150px;
+      }
+      #controllers{
+        height: 80%
+      }
+      .container {
+        padding: 32px;
+      }
+      .tall {
+        position: relative;
+       height: 100%;
+      }
+      .flex {
+        display: flex;
+        height: 100%;
+      }
+      .cols { 
+        flex-direction: column;
+      }
+      .spacer { 
+        flex: 1 1 1;
+      }
+      .columns {
+        flex-direction: column;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="/static/js/three.js"></script>
+    <script src="/static/js/trackball-controls.js"></script>
+    <script src="/static/js/plot.js"></script>
+  </body>
 </html>
