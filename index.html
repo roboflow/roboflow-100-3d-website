@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link
       href="https://fonts.googleapis.com/css?family=Roboto"
@@ -19,24 +19,34 @@
         <div class="flex rows">
           <div class="spacer"></div>
           <button id="sidebar-button-expand" class="icon light solid">
-            <span class="material-symbols-outlined"> expand_content </span>
+            <span class="material-symbols-outlined"> arrow_forward_ios </span>
           </button>
         </div>
       </div>
 
       <div id="app">
-        <div id="sidebar">
+        <div id="sidebar" class="show">
           <div class="container">
             <div class="flex rows">
               <div class="spacer"></div>
-              <button id="sidebar-button-close" class="icon">
-                <span class="material-symbols-outlined dark"> close </span>
+              <button id="sidebar-button-close" class="icon dark">
+                <span class="material-symbols-outlined"> close </span>
               </button>
             </div>
-            <h4>Roboflow 100 🚀</h4>
+            <h4>Roboflow 100 📸</h4>
             <div id="controllers">
               <div class="flex cols tall">
-                <p>CLIP embeddings + TSNE</p>
+                <p>
+                  A collection of 100 datasets from
+                  <a href="https://universe.roboflow.com/">
+                    Roboflow Universe </a
+                  >. <br />512 images sampled per images. Encoded with
+                  <a href="https://openai.com/blog/clip/">CLIP</a> +
+                  <a
+                    href="https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding"
+                    >TSNE</a
+                  >.
+                </p>
                 <small>Dimensions</small>
                 <form>
                   <input
@@ -77,16 +87,31 @@
       </div>
     </body>
     <style>
-      @import url('https://fonts.googleapis.com/css?family=Roboto:400');
+      @import url("https://fonts.googleapis.com/css?family=Poppins:400");
 
-      html {font-size: 100%;} /*16px*/
+      html {
+        font-size: 100%;
+      } /*16px*/
 
+      body {
+        background: white;
+        font-family: "Poppins", sans-serif;
+        font-weight: 400;
+        line-height: 1.75;
+        color: #000000;
+      }
 
-      p {margin-bottom: 1rem;}
+      p {
+        margin-bottom: 1rem;
+      }
 
-      h1, h2, h3, h4, h5 {
+      h1,
+      h2,
+      h3,
+      h4,
+      h5 {
         margin: 3rem 0 1.38rem;
-        font-family: 'Roboto', sans-serif;
+        font-family: "Poppins", sans-serif;
         font-weight: 400;
         line-height: 1.3;
       }
@@ -96,23 +121,64 @@
         font-size: 4.209rem;
       }
 
-      h2 {font-size: 3.157rem;}
+      h2 {
+        font-size: 3.157rem;
+      }
 
-      h3 {font-size: 2.369rem;}
+      h3 {
+        font-size: 2.369rem;
+      }
 
-      h4 {font-size: 1.777rem;}
+      h4 {
+        font-size: 1.777rem;
+      }
 
-      h5 {font-size: 1.333rem;}
+      h5 {
+        font-size: 1.333rem;
+      }
 
-      small, .text_small {font-size: 0.75rem;}
+      small,
+      .text_small {
+        font-size: 0.75rem;
+      }
+
+      @keyframes hide {
+        from {
+          transform: translate(320px, 0);
+        }
+        to {
+          transform: translate(-321px, 0);
+        }
+      }
+
+      @keyframes show {
+        from {
+          transform: translate(-321px, 0);
+        }
+        to {
+          transform: translate(320px, 0);
+        }
+      }
+
+      @keyframes fade-in {
+        from {
+          transform: opacity(0);
+        }
+        to {
+          transform: opacity(1);
+        }
+      }
 
       body {
-        margin: 0;
-        font-family: "Roboto", sans-serif;
-        max-height: 100vh;
+        font-family: "Poppins", sans-serif;
+        font-weight: 400;
         line-height: 1.75;
         color: #000000;
+        max-height: 100vh;
+        line-height: 1.75;
         background-color: #202020;
+        margin: 0;
+        overflow: hidden;
       }
       #app {
         background-color: #202020;
@@ -120,21 +186,26 @@
       #sidebar {
         position: absolute;
         top: 0;
-        left: 0;
-        width: 320px;
+        left: -320px;
+        width: min(320px, 100vw);
         height: 100vh;
         background-color: white;
-        overflow-y : auto;
+        overflow-y: auto;
+      }
+      #sidebar.hide {
+        animation: hide 0.5s forwards;
+      }
+      #sidebar.show {
+        animation: show 0.5s forwards;
       }
       #sidebar-suppressed {
         position: absolute;
         top: 0;
         left: 0;
-        z-index: 9999;
       }
       #canvas {
-        /* width: 100%; */
-        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
       }
       #dataset-selector {
         min-width: 150px;
@@ -194,12 +265,12 @@
 
       button.icon {
         display: flex;
-        padding: 4px;
+        font-size: 1rem;
+        padding: 0.5rem;
       }
       button.icon.light.solid {
         background: #555555;
         border-radius: 50%;
-        padding: 4px;
       }
       button.icon.dark:hover {
         background: #e7eaee;
@@ -212,8 +283,7 @@
       .hidden {
         display: none;
       }
-
-      @media only screen and (min-width: 768px) {
+      .love {
       }
     </style>
   </head>
