@@ -139,11 +139,11 @@ function loadDatasets({ dims }, datasets) {
 
     for (let dataset of datasets) {
         console.info(`Loading ${dataset}`)
-        fetch(`/static/montages/${dataset}/reduced-tsne-k=${dims}-points.json`)
+        fetch(`static/montages/${dataset}/reduced-tsne-k=${dims}-points.json`)
             .then((response) => response.json())
             .then((json) => config.addZNoise ? addZNoise(json) : json)
             .then((json) => {
-                mesh = addMeshForAtlas(json, `/static/montages/${dataset}/2048-img-atlas.jpg`)
+                mesh = addMeshForAtlas(json, `static/montages/${dataset}/2048-img-atlas.jpg`)
                 meshes[dataset] = mesh
             });
     }
@@ -271,7 +271,7 @@ function setUpUIControllers(datasets) {
 
 
 function setUp() {
-    fetch(`/static/datasets.json`)
+    fetch(`static/datasets.json`)
         .then((response) => response.json())
         .then((datasets) => {
             setupThreeJS(datasets)
