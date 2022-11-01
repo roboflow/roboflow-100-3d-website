@@ -199,7 +199,7 @@ function setUpUIControllers(datasets) {
     // "RESPONSIVE"
     const toggleSideNavBasedOnViewPort = () => {
         const width = window.innerWidth
-        if (width <= 1024) {
+        if (width <= 1280) {
             if (!sideBar.classList.contains("hidden")) sideBar.classList.add("hidden")
             if (sideBarSuppressed.classList.contains("hidden")) sideBarSuppressed.classList.remove("hidden")
         } else {

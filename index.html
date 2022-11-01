@@ -22,7 +22,7 @@
         </div>
       </div>
 
-      <div id="app" class="flex rows">
+      <div id="app">
         <div id="sidebar">
           <div class="container">
             <div class="flex rows">
@@ -116,7 +116,10 @@
         background-color: #202020;
       }
       #sidebar {
-        width: 300px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 320px;
         height: 100vh;
         background-color: white;
       }
@@ -170,7 +173,8 @@
       .icon:hover {
         opacity: 0.4;
       }
-      .icon {
+      .card {
+        border-radius: 2rem;
       }
 
       button,
