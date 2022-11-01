@@ -16,7 +16,7 @@ const textureLoader = new THREE.TextureLoader();
 
 var meshes = {};
 
-function toogleLoader(){
+function toogleLoader() {
 
 }
 
@@ -41,7 +41,7 @@ function getImageGeometryForAtlas(data) {
     const xStepSize = (imageSize.width / atlas.width)
     const yStepSize = (imageSize.height / atlasHeight)
 
-    const xGlobalOffset = imageSize.width /  config.atlas.width 
+    const xGlobalOffset = imageSize.width / config.atlas.width
     const yGlobalOffset = imageSize.height / atlasHeight
 
     for (let i = 0; i < coords.length; i++) {
@@ -73,7 +73,7 @@ function getImageGeometryForAtlas(data) {
         //  e.g, we are on the second column, we need to have xs in "atlas" coordinates
         const xOffset = (i % config.atlas.cols) * xStepSize
         // same for y
-        const yOffset =  Math.floor(i / config.atlas.cols) * yStepSize;
+        const yOffset = Math.floor(i / config.atlas.cols) * yStepSize;
         // set the uvs for this box; these identify the following corners:
         // lower-left, lower-right, upper-right, upper-left
         uvs.push(
@@ -139,76 +139,16 @@ function loadDatasets({ dims }, datasets) {
 
     for (let dataset of datasets) {
         console.info(`Loading ${dataset}`)
-        fetch(`/roboflow-100-3d-website/static/montages/${dataset}/reduced-tsne-k=${dims}-points.json`)
+        fetch(`/static/montages/${dataset}/reduced-tsne-k=${dims}-points.json`)
             .then((response) => response.json())
             .then((json) => config.addZNoise ? addZNoise(json) : json)
             .then((json) => {
-                mesh = addMeshForAtlas(json, `/roboflow-100-3d-website/static/montages/${dataset}/2048-img-atlas.jpg`)
+                mesh = addMeshForAtlas(json, `/static/montages/${dataset}/2048-img-atlas.jpg`)
                 meshes[dataset] = mesh
             });
     }
 }
 
-function setUpUIControllers(datasets) {
-    // switch to 2d
-    document.querySelector("#dims-2d").addEventListener("click",
-        (e) => {
-            document.querySelector("#dims-3d").checked = false
-            config.dims = 2
-            config.spacing = [200, 200, 1]
-            config.addZNoise = true
-            loadDatasets(config, datasets)
-            camera.position.set(0, 0, 10000);
-            controls.update();
-        }
-    )
-    //  switch to 3d
-    document.querySelector("#dims-3d").addEventListener("click",
-        (e) => {
-            document.querySelector("#dims-2d").checked = false
-            config.dims = 3
-            config.spacing = [200, 200, 200]
-            config.addZNoise = false
-            loadDatasets(config, datasets)
-            camera.position.set(0, 0, 10000);
-            controls.update();
-        }
-    )
-    // select dataset
-    const selector = document.querySelector("#dataset-selector")
-
-    for (let dataset of datasets){
-        const option = document.createElement('option');
-        option.value = dataset;
-        option.innerHTML = dataset;
-        selector.appendChild(option);
-    }
-
-    // handle logic when selected changes
-    selectedDataset = selector.value
-    selector.addEventListener("change", 
-    (e) => {
-        let newSelectedDataset = e.target.value
-        if (newSelectedDataset != selectedDataset) {
-            // little helped function
-            const setOpacity = (opacity, expectFor) => {
-                for(let key in meshes){
-                    if (key == expectFor) continue
-                    let mesh = meshes[key]
-                    mesh.material.opacity = opacity
-                }
-            }
-            // set opacity to 1 to everyone
-            setOpacity(1, null)
-            // if not selected "all", set 0.02 to everyone expect what we selected!
-            if(newSelectedDataset != "all") setOpacity(0.02, newSelectedDataset)
-            selectedDataset = newSelectedDataset
-            const mesh = meshes[newSelectedDataset]
-            // camera.position.set(5, 1, 10000);
-            console.info(`Switched to ${newSelectedDataset}`)
-        }
-    })
-}
 
 function setupThreeJS(datasets) {
     scene.background = new THREE.Color("#202020");
@@ -237,8 +177,101 @@ function setupThreeJS(datasets) {
     animate()
 }
 
+function setUpUIControllers(datasets) {
+    // open and close sidebar
+    const sideBar = document.querySelector("#sidebar")
+    const sideBarSuppressed = document.querySelector("#sidebar-suppressed")
+
+    const toggleElement = (element) => {
+        if (element.classList.contains("hidden")) element.classList.remove("hidden")
+        else element.classList.add("hidden")
+    }
+
+    document.querySelector("#sidebar-button-expand").addEventListener("click", () => {
+        toggleElement(sideBar)
+        toggleElement(sideBarSuppressed)
+    })
+
+    document.querySelector("#sidebar-button-close").addEventListener("click", () => {
+        toggleElement(sideBar)
+        toggleElement(sideBarSuppressed)
+    })
+    // "RESPONSIVE"
+    const toggleSideNavBasedOnViewPort = () => {
+        const width = window.innerWidth
+        if (width <= 1024) {
+            if (!sideBar.classList.contains("hidden")) sideBar.classList.add("hidden")
+            if (sideBarSuppressed.classList.contains("hidden")) sideBarSuppressed.classList.remove("hidden")
+        } else {
+            if (sideBar.classList.contains("hidden")) sideBar.classList.remove("hidden")
+            if (!sideBarSuppressed.classList.contains("hidden")) sideBarSuppressed.classList.add("hidden")
+        }
+    }
+    toggleSideNavBasedOnViewPort()
+    window.addEventListener('resize', () => toggleSideNavBasedOnViewPort())
+    // switch to 2d
+    document.querySelector("#dims-2d").addEventListener("click",
+        (e) => {
+            document.querySelector("#dims-3d").checked = false
+            config.dims = 2
+            config.spacing = [200, 200, 1]
+            config.addZNoise = true
+            loadDatasets(config, datasets)
+            camera.position.set(0, 0, 10000);
+            controls.update();
+        }
+    )
+    //  switch to 3d
+    document.querySelector("#dims-3d").addEventListener("click",
+        (e) => {
+            document.querySelector("#dims-2d").checked = false
+            config.dims = 3
+            config.spacing = [200, 200, 200]
+            config.addZNoise = false
+            loadDatasets(config, datasets)
+            camera.position.set(0, 0, 10000);
+            controls.update();
+        }
+    )
+    // select dataset
+    const selector = document.querySelector("#dataset-selector")
+
+    for (let dataset of datasets) {
+        const option = document.createElement('option');
+        option.value = dataset;
+        option.innerHTML = dataset;
+        selector.appendChild(option);
+    }
+
+    // handle logic when selected changes
+    selectedDataset = selector.value
+    selector.addEventListener("change",
+        (e) => {
+            let newSelectedDataset = e.target.value
+            if (newSelectedDataset != selectedDataset) {
+                // little helped function
+                const setOpacity = (opacity, expectFor) => {
+                    for (let key in meshes) {
+                        if (key == expectFor) continue
+                        let mesh = meshes[key]
+                        mesh.material.opacity = opacity
+                    }
+                }
+                // set opacity to 1 to everyone
+                setOpacity(1, null)
+                // if not selected "all", set 0.02 to everyone expect what we selected!
+                if (newSelectedDataset != "all") setOpacity(0.02, newSelectedDataset)
+                selectedDataset = newSelectedDataset
+                const mesh = meshes[newSelectedDataset]
+                // camera.position.set(5, 1, 10000);
+                console.info(`Switched to ${newSelectedDataset}`)
+            }
+        })
+}
+
+
 function setUp() {
-    fetch(`/roboflow-100-3d-website/static/datasets.json`)
+    fetch(`/static/datasets.json`)
         .then((response) => response.json())
         .then((datasets) => {
             setupThreeJS(datasets)
@@ -246,5 +279,6 @@ function setUp() {
         })
 
 }
+
 
 setUp()
