@@ -188,22 +188,35 @@ function setUpUIControllers(datasets) {
     }
 
     document.querySelector("#sidebar-button-expand").addEventListener("click", () => {
-        toggleElement(sideBar)
+        sideBar.classList.remove("hide")
+        sideBar.classList.remove("show")
+        sideBar.classList.add("show")
         toggleElement(sideBarSuppressed)
     })
 
     document.querySelector("#sidebar-button-close").addEventListener("click", () => {
-        toggleElement(sideBar)
+        sideBar.classList.remove("show")
+        sideBar.classList.remove("hide")
+        sideBar.classList.add("hide")
         toggleElement(sideBarSuppressed)
     })
     // "RESPONSIVE"
     const toggleSideNavBasedOnViewPort = () => {
         const width = window.innerWidth
         if (width <= 1280) {
-            if (!sideBar.classList.contains("hidden")) sideBar.classList.add("hidden")
+            if (!sideBar.classList.contains("hide")) {
+                // [TODO] this code can be placed in one single function
+                sideBar.classList.remove("show")
+                sideBar.classList.remove("hide")
+                sideBar.classList.add("hide")
+            }
             if (sideBarSuppressed.classList.contains("hidden")) sideBarSuppressed.classList.remove("hidden")
         } else {
-            if (sideBar.classList.contains("hidden")) sideBar.classList.remove("hidden")
+            if (sideBar.classList.contains("hide")) {
+                sideBar.classList.remove("hide")
+                sideBar.classList.remove("show")
+                sideBar.classList.add("show")
+            }
             if (!sideBarSuppressed.classList.contains("hidden")) sideBarSuppressed.classList.add("hidden")
         }
     }
