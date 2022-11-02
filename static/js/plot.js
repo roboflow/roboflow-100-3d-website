@@ -9,12 +9,15 @@ var config = {
 }
 
 // scene setup
+const canvas = document.querySelector("#canvas")
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100000);
-const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: document.querySelector("#canvas") });
+const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
 const textureLoader = new THREE.TextureLoader();
 
-var meshes = {};
+var namesTomeshes = {};
+// inverse map, useful for fast look up
+var meshesToNames = {};
 
 function toogleLoader() {
 
@@ -77,6 +80,7 @@ function getImageGeometryForAtlas(data) {
         // set the uvs for this box; these identify the following corners:
         // lower-left, lower-right, upper-right, upper-left
         uvs.push(
+            // first point in top-left
             xOffset + xGlobalOffset, yOffset - yGlobalOffset,
             xOffset, yOffset - yGlobalOffset,
             xOffset, yOffset,
@@ -144,7 +148,8 @@ function loadDatasets({ dims }, datasets) {
             .then((json) => config.addZNoise ? addZNoise(json) : json)
             .then((json) => {
                 mesh = addMeshForAtlas(json, `static/montages/${dataset}/2048-img-atlas.jpg`)
-                meshes[dataset] = mesh
+                namesTomeshes[dataset] = mesh
+                meshesToNames[mesh.id] = dataset
             });
     }
 }
@@ -258,28 +263,59 @@ function setUpUIControllers(datasets) {
 
     // handle logic when selected changes
     selectedDataset = selector.value
+    // little helped function
+    const setOpacity = (opacity, expectFor) => {
+        for (let key in namesTomeshes) {
+            if (key == expectFor) continue
+            let mesh = namesTomeshes[key]
+            mesh.material.opacity = opacity
+        }
+    }
     selector.addEventListener("change",
         (e) => {
             let newSelectedDataset = e.target.value
             if (newSelectedDataset != selectedDataset) {
-                // little helped function
-                const setOpacity = (opacity, expectFor) => {
-                    for (let key in meshes) {
-                        if (key == expectFor) continue
-                        let mesh = meshes[key]
-                        mesh.material.opacity = opacity
-                    }
-                }
                 // set opacity to 1 to everyone
                 setOpacity(1, null)
                 // if not selected "all", set 0.02 to everyone expect what we selected!
                 if (newSelectedDataset != "all") setOpacity(0.02, newSelectedDataset)
                 selectedDataset = newSelectedDataset
-                const mesh = meshes[newSelectedDataset]
+                const mesh = namesTomeshes[newSelectedDataset]
                 // camera.position.set(5, 1, 10000);
                 console.info(`Switched to ${newSelectedDataset}`)
             }
         })
+    let raycaster = new THREE.Raycaster();
+    let mouse = new THREE.Vector2(0, 0);
+    let lastMousePosition = {}
+    // highlight on over
+    canvas.addEventListener("mousedown", (e) => {
+        lastMousePosition.x = e.clientX
+        lastMousePosition.y = e.clientY
+    })
+    canvas.addEventListener("mouseup", (e) => {
+        // only highlight if we click on them, not if we move around
+        const hasMoved = Math.abs((lastMousePosition.x - e.clientX) + (lastMousePosition.y - e.clientY)) > 0
+        if (hasMoved) return
+        // from pixel coords to world https://threejs.org/docs/#api/en/core/Raycaster
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        // find where we intersects
+        const intersects = raycaster.intersectObjects(Object.values(namesTomeshes))
+        if (intersects.length > 0) {
+            // hide the others by dispacthing event to selector
+            let meshName = meshesToNames[intersects[0].object.id]
+            selector.value = meshName
+            selector.dispatchEvent(new Event('change', { "target": { "value": meshName } }))
+
+        }
+        else {
+            selector.value = "all"
+            selector.dispatchEvent(new Event('change', { "target": { "value": "all" } }))
+        }
+
+    })
 }
 
 
