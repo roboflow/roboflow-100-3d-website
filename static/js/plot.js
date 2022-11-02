@@ -147,7 +147,7 @@ function loadDatasets({ dims }, datasets) {
             .then((response) => response.json())
             .then((json) => config.addZNoise ? addZNoise(json) : json)
             .then((json) => {
-                mesh = addMeshForAtlas(json, `static/montages/${dataset}/2048-img-atlas.jpg`)
+                mesh = addMeshForAtlas(json, `static/montages/${dataset}/2048-img-atlas_compressed.jpg`)
                 namesTomeshes[dataset] = mesh
                 meshesToNames[mesh.id] = dataset
             });
