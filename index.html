@@ -23,8 +23,8 @@
           </button>
         </div>
       </div>
-
       <div id="app">
+        <div id="controllers" class="flex ">
         <div id="sidebar" class="show">
           <div class="container">
             <div class="flex rows">
@@ -34,7 +34,7 @@
               </button>
             </div>
             <h4>Roboflow 100 📸</h4>
-            <div id="controllers">
+            <div>
               <div class="flex cols tall">
                 <p>
                   A collection of 100 datasets from
@@ -47,6 +47,10 @@
                     >TSNE</a
                   >.
                 </p>
+                <br/>
+                <small>Click on an image to display dataset card.</small>
+
+                <br/>
                 <small>Dimensions</small>
                 <form>
                   <input
@@ -63,7 +67,7 @@
                     name="dims-3d"
                     value="dims-3d"
                   />
-                  <label for="dims-3d">3D</label><br /><br />
+                  <label for="dims-3d">3D</label><br />
                   <small>Dataset</small><br />
                   <select
                     id="dataset-selector"
@@ -83,6 +87,7 @@
             </div>
           </div>
         </div>
+      </div>
         <canvas id="canvas" />
       </div>
     </body>
@@ -144,7 +149,7 @@
 
       @keyframes hide {
         from {
-          transform: translate(320px, 0);
+          transform: translate(0, 0);
         }
         to {
           transform: translate(-321px, 0);
@@ -156,7 +161,7 @@
           transform: translate(-321px, 0);
         }
         to {
-          transform: translate(320px, 0);
+          transform: translate(0, 0);
         }
       }
 
@@ -183,9 +188,13 @@
       #app {
         background-color: #202020;
       }
-      #sidebar {
+      #controllers {
         position: absolute;
         top: 0;
+        left: 0;
+        height: 100vh;
+      }
+      #sidebar {
         left: -320px;
         width: min(320px, 100vw);
         height: 100vh;
@@ -202,6 +211,7 @@
         position: absolute;
         top: 0;
         left: 0;
+        z-index: 9999;
       }
       #canvas {
         max-width: 100%;
@@ -209,9 +219,6 @@
       }
       #dataset-selector {
         min-width: 150px;
-      }
-      #controllers {
-        height: 80%;
       }
       .container {
         padding: 32px;
