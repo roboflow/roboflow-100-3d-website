@@ -73,14 +73,14 @@ function getImageGeometryForAtlas(data) {
         //  e.g, we are on the second column, we need to have xs in "atlas" coordinates
         const xOffset = (i % config.atlas.cols) * xStepSize
         // same for y
-        const yOffset = Math.floor(i / config.atlas.cols) * yStepSize;
+        const yOffset = 1 - Math.floor(i / config.atlas.cols) * yStepSize;
         // set the uvs for this box; these identify the following corners:
         // lower-left, lower-right, upper-right, upper-left
         uvs.push(
+            xOffset + xGlobalOffset, yOffset - yGlobalOffset,
+            xOffset, yOffset - yGlobalOffset,
             xOffset, yOffset,
             xOffset + xGlobalOffset, yOffset,
-            xOffset + xGlobalOffset, yOffset + yGlobalOffset,
-            xOffset, yOffset + yGlobalOffset,
         )
     }
     // in the first argument per vertex
