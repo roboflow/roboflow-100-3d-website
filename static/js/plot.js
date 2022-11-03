@@ -225,8 +225,8 @@ function setUpUIControllers(datasets) {
             if (!sideBarSuppressed.classList.contains("hidden")) sideBarSuppressed.classList.add("hidden")
         }
     }
-    toggleSideNavBasedOnViewPort()
-    window.addEventListener('resize', () => toggleSideNavBasedOnViewPort())
+    // toggleSideNavBasedOnViewPort()
+    // window.addEventListener('resize', () => toggleSideNavBasedOnViewPort())
     // switch to 2d
     document.querySelector("#dims-2d").addEventListener("click",
         (e) => {
