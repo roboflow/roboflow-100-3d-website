@@ -189,7 +189,7 @@ function findCenter(object) {
     return middle
 }
 
-function flyTo(object){
+function flyTo(object) {
     var center = findCenter(object)
 
     const objectInWorldPosition = object.localToWorld(center)
@@ -311,7 +311,7 @@ function setUpUIControllers(datasets) {
     let lastMousePosition = {}
     // highlight on click
     const getInteresectedObject = (e) => {
-          // from pixel coords to world https://threejs.org/docs/#api/en/core/Raycaster
+        // from pixel coords to world https://threejs.org/docs/#api/en/core/Raycaster
         mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
         mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
@@ -329,7 +329,7 @@ function setUpUIControllers(datasets) {
         if (hasMoved) return
         const intersects = getInteresectedObject(e)
         if (intersects.length > 0) {
-            const object =  intersects[0].object
+            const object = intersects[0].object
             // hide the others by dispacthing event to selector
             let meshName = meshesToNames[object.id]
             selector.value = meshName
@@ -363,7 +363,7 @@ function setUpUIControllers(datasets) {
     })
     // reset camera
     const resetCameraBtn = document.querySelector("#reset-camera")
-        resetCameraBtn.addEventListener("click", () => {
+    resetCameraBtn.addEventListener("click", () => {
         // cameraNewPosition = new THREE.Vector3(0, 0, 5000)
         controls.reset();
 
@@ -374,7 +374,7 @@ function setUpUIControllers(datasets) {
 
 function setUp() {
     fetch(`static/datasets.json`)
-    // fetch(`datasets_dummy.json`)
+        // fetch(`datasets_dummy.json`)
         .then((response) => response.json())
         .then((datasets) => {
             setupThreeJS(datasets)
