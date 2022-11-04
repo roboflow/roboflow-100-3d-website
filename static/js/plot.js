@@ -14,6 +14,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
 const textureLoader = new THREE.TextureLoader();
+// need to be global since I am referring them around
 let cameraNewPosition = new THREE.Vector3(0, 0, 5000)
 camera.position.set(0, 0, 5000)
 var controls = new THREE.TrackballControls(camera, renderer.domElement);
@@ -97,7 +98,6 @@ function getImageGeometryForAtlas(data) {
     return geometry
 }
 
-
 function getImageMaterialFromUrl(url) {
     // Load an image file into a MeshBasicMaterial
     const material = new THREE.MeshBasicMaterial({
@@ -151,31 +151,6 @@ function loadDatasets({ dims }, datasets) {
     }
 }
 
-
-function setupThreeJS(datasets) {
-    scene.background = new THREE.Color("#202020");
-    camera.position.set(cameraNewPosition.x, cameraNewPosition.y, cameraNewPosition.z);
-    renderer.setSize(window.innerWidth, window.innerHeight, false);
-
-    loadDatasets(config, datasets)
-
-    window.addEventListener('resize', function () {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight, false);
-        controls.handleResize();
-    });
-
-
-    function animate() {
-        requestAnimationFrame(animate);
-        renderer.render(scene, camera);
-        controls.update();
-
-    }
-    animate()
-}
-
 function findCenter(object) {
     var middle = new THREE.Vector3();
     var geometry = object.geometry;
@@ -199,6 +174,30 @@ function flyTo(object) {
     camera.lookAt(object)
     // console.log(objectPosition, camera.position)
     controls.update()
+}
+
+function setupThreeJS(datasets) {
+    scene.background = new THREE.Color("#202020");
+    camera.position.set(cameraNewPosition.x, cameraNewPosition.y, cameraNewPosition.z);
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+
+    loadDatasets(config, datasets)
+
+    window.addEventListener('resize', function () {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight, false);
+        controls.handleResize();
+    });
+
+
+    function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+        controls.update();
+
+    }
+    animate()
 }
 
 function setUpUIControllers(datasets) {
@@ -371,7 +370,6 @@ function setUpUIControllers(datasets) {
 
 }
 
-
 function setUp() {
     fetch(`static/datasets.json`)
         // fetch(`datasets_dummy.json`)
@@ -382,6 +380,5 @@ function setUp() {
         })
 
 }
-
 
 setUp()
