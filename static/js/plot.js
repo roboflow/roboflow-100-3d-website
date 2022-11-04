@@ -358,7 +358,7 @@ function setUpUIControllers(datasets) {
     let debounceTimeoutId;
     canvas.addEventListener("mousemove", (e) => {
         clearTimeout(debounceTimeoutId);
-        debounceTimeoutId = setTimeout(() => handleMouseMove(e), 10)
+        debounceTimeoutId = setTimeout(() => handleMouseMove(e), 5)
     })
     // reset camera
     const resetCameraBtn = document.querySelector("#reset-camera")
