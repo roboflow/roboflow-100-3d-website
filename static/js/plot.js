@@ -14,6 +14,8 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
 const textureLoader = new THREE.TextureLoader();
+let cameraNewPosition = new THREE.Vector3(0, 0, 5000)
+camera.position.set(0, 0, 5000)
 var controls = new THREE.TrackballControls(camera, renderer.domElement);
 
 var namesTomeshes = {};
@@ -152,7 +154,7 @@ function loadDatasets({ dims }, datasets) {
 
 function setupThreeJS(datasets) {
     scene.background = new THREE.Color("#202020");
-    camera.position.set(0, 0,5000);
+    camera.position.set(cameraNewPosition.x, cameraNewPosition.y, cameraNewPosition.z);
     renderer.setSize(window.innerWidth, window.innerHeight, false);
 
     loadDatasets(config, datasets)
@@ -330,6 +332,14 @@ function setUpUIControllers(datasets) {
             // selector.value = "all"
             // currentImage.src = ""
         }
+    })
+
+    // reset camera
+    const resetCameraBtn = document.querySelector("#reset-camera")
+        resetCameraBtn.addEventListener("click", () => {
+        // cameraNewPosition = new THREE.Vector3(0, 0, 5000)
+        controls.reset();
+
     })
 
 }
