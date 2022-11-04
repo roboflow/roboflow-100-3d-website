@@ -167,7 +167,6 @@ function setupThreeJS(datasets) {
     });
 
 
-
     function animate() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
@@ -248,6 +247,7 @@ function setUpUIControllers(datasets) {
     )
     // select dataset
     const selector = document.querySelector("#dataset-selector")
+    const currentImage = document.querySelector("#current-image")
 
     for (let dataset of datasets) {
         const option = document.createElement('option');
@@ -278,6 +278,7 @@ function setUpUIControllers(datasets) {
                 const mesh = namesTomeshes[newSelectedDataset]
                 // camera.position.set(5, 1, 10000);
                 console.info(`Switched to ${newSelectedDataset}`)
+                currentImage.src = `static/montages/${selectedDataset}/images/0.jpeg`
             }
         })
     let raycaster = new THREE.Raycaster();
@@ -317,7 +318,6 @@ function setUpUIControllers(datasets) {
         }
     })
     // show image on the sidebar on hover 
-    const currentImage = document.querySelector("#current-image")
     canvas.addEventListener("mousemove", (e) => {
         const intersects = getInteresectedObject(e)
         if (intersects.length > 0) {
