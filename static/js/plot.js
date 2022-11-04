@@ -344,7 +344,8 @@ function setUpUIControllers(datasets) {
         }
     })
     // show image on the sidebar on hover 
-    canvas.addEventListener("mousemove", (e) => {
+    const handleMouseMove = (e) => {
+        console.log('asddsa')
         const intersects = getInteresectedObject(e)
         if (intersects.length > 0) {
             // hide the others by dispacthing event to selector
@@ -354,12 +355,12 @@ function setUpUIControllers(datasets) {
             currentImage.src = `static/montages/${meshName}/images/${imageIdx}.jpeg`
             selector.value = meshName
         }
-        else {
-            // selector.value = "all"
-            // currentImage.src = ""
-        }
+    }
+    let debounceTimeoutId;
+    canvas.addEventListener("mousemove", (e) => {
+        clearTimeout(debounceTimeoutId);
+        debounceTimeoutId = setTimeout(() => handleMouseMove(e), 10)
     })
-
     // reset camera
     const resetCameraBtn = document.querySelector("#reset-camera")
         resetCameraBtn.addEventListener("click", () => {
