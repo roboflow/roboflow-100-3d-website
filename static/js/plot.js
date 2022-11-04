@@ -176,6 +176,31 @@ function setupThreeJS(datasets) {
     animate()
 }
 
+function findCenter(object) {
+    var middle = new THREE.Vector3();
+    var geometry = object.geometry;
+
+    geometry.computeBoundingBox();
+
+    middle.x = (geometry.boundingBox.max.x + geometry.boundingBox.min.x) / 2;
+    middle.y = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
+    middle.z = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2
+
+    return middle
+}
+
+function flyTo(object){
+    var center = findCenter(object)
+
+    const objectInWorldPosition = object.localToWorld(center)
+    const objectInCameraPosition = camera.worldToLocal(objectInWorldPosition)
+    console.log(objectInWorldPosition, camera.localToWorld(camera.position.clone()))
+    camera.position.set(objectInCameraPosition.x, objectInCameraPosition.y, objectInCameraPosition)
+    camera.lookAt(object)
+    // console.log(objectPosition, camera.position)
+    controls.update()
+}
+
 function setUpUIControllers(datasets) {
     // open and close sidebar
     const sideBar = document.querySelector("#sidebar")
@@ -309,6 +334,7 @@ function setUpUIControllers(datasets) {
             let meshName = meshesToNames[object.id]
             selector.value = meshName
             selector.dispatchEvent(new Event('change', { "target": { "value": meshName } }))
+            // flyTo(object)
             // camera.position.set()
         }
         else {
