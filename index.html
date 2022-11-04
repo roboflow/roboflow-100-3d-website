@@ -24,7 +24,7 @@
         </div>
       </div>
       <div id="app">
-        <div id="controllers" class="flex ">
+        <div id="sidebar-container" class="flex ">
         <div id="sidebar" class="show">
           <div class="container">
             <div class="flex rows">
@@ -75,7 +75,11 @@
                     <option value="all">all</option>
                   </select>
                 </form>
-                <br /><br /><br /><br />
+                <br />
+                <!-- uv map is kinda of wrong since I have specular images -->
+                <img id="current-image" src="" style="transform: scaleX(-1);"/>
+                <br /><br /><br />
+                <button id="reset-camera">Reset camera</button>
                 <div class="spacer"></div>
                 <small
                   >Hosted with 💜 by
@@ -186,7 +190,7 @@
       #app {
         background-color: #202020;
       }
-      #controllers {
+      #sidebar-container {
         position: absolute;
         top: 0;
         left: 0;
@@ -259,17 +263,18 @@
       button,
       button:focus {
         outline: none;
-        background: transparent;
+        /* background: transparent; */
         border: 1px solid transparent;
       }
 
       button:active {
         outline: none;
-        background: transparent;
+        /* background: transparent; */
       }
 
       button.icon {
         display: flex;
+        background: transparent;
         font-size: 1rem;
         padding: 0.25rem;
       }
