@@ -14,6 +14,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
 const textureLoader = new THREE.TextureLoader();
+var controls = new THREE.TrackballControls(camera, renderer.domElement);
 
 var namesTomeshes = {};
 // inverse map, useful for fast look up
@@ -112,19 +113,13 @@ function addMeshForAtlas(coords, url) {
         coords,
         atlas: config.atlas
     })
-
-
     let imageMaterial = getImageMaterialFromUrl(url)
-
     // combine the image geometry and material into a mesh
     var mesh = new THREE.Mesh(imageGeometry, imageMaterial);
-
     // set the position of the image mesh in the x,y,z dimensions
     mesh.position.set(coords[0].x, coords[0].y, coords[0].z)
-
     // add the image to the scene
     scene.add(mesh);
-
     return mesh
 }
 
@@ -157,12 +152,10 @@ function loadDatasets({ dims }, datasets) {
 
 function setupThreeJS(datasets) {
     scene.background = new THREE.Color("#202020");
-    camera.position.set(0, 0, 10000);
+    camera.position.set(0, 0,5000);
     renderer.setSize(window.innerWidth, window.innerHeight, false);
 
     loadDatasets(config, datasets)
-
-    var controls = new THREE.TrackballControls(camera, renderer.domElement);
 
     window.addEventListener('resize', function () {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -288,7 +281,16 @@ function setUpUIControllers(datasets) {
     let raycaster = new THREE.Raycaster();
     let mouse = new THREE.Vector2(0, 0);
     let lastMousePosition = {}
-    // highlight on over
+    // highlight on click
+    const getInteresectedObject = (e) => {
+          // from pixel coords to world https://threejs.org/docs/#api/en/core/Raycaster
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        // find where we intersects
+        const intersects = raycaster.intersectObjects(Object.values(namesTomeshes))
+        return intersects
+    }
     canvas.addEventListener("mousedown", (e) => {
         lastMousePosition.x = e.clientX
         lastMousePosition.y = e.clientY
@@ -297,30 +299,45 @@ function setUpUIControllers(datasets) {
         // only highlight if we click on them, not if we move around
         const hasMoved = Math.abs((lastMousePosition.x - e.clientX) + (lastMousePosition.y - e.clientY)) > 0
         if (hasMoved) return
-        // from pixel coords to world https://threejs.org/docs/#api/en/core/Raycaster
-        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera);
-        // find where we intersects
-        const intersects = raycaster.intersectObjects(Object.values(namesTomeshes))
+        const intersects = getInteresectedObject(e)
         if (intersects.length > 0) {
+            const object =  intersects[0].object
             // hide the others by dispacthing event to selector
-            let meshName = meshesToNames[intersects[0].object.id]
+            let meshName = meshesToNames[object.id]
             selector.value = meshName
             selector.dispatchEvent(new Event('change', { "target": { "value": meshName } }))
-
+            // camera.position.set()
         }
         else {
             selector.value = "all"
             selector.dispatchEvent(new Event('change', { "target": { "value": "all" } }))
+            currentImage.src = ""
         }
-
     })
+    // show image on the sidebar on hover 
+    const currentImage = document.querySelector("#current-image")
+    canvas.addEventListener("mousemove", (e) => {
+        const intersects = getInteresectedObject(e)
+        if (intersects.length > 0) {
+            // hide the others by dispacthing event to selector
+            let meshName = meshesToNames[intersects[0].object.id]
+            // dive by two since each image is 2 triangles
+            const imageIdx = Math.floor(intersects[0].faceIndex / 2)
+            currentImage.src = `static/montages/${meshName}/images/${imageIdx}.jpeg`
+            selector.value = meshName
+        }
+        else {
+            // selector.value = "all"
+            // currentImage.src = ""
+        }
+    })
+
 }
 
 
 function setUp() {
     fetch(`static/datasets.json`)
+    // fetch(`datasets_dummy.json`)
         .then((response) => response.json())
         .then((datasets) => {
             setupThreeJS(datasets)
