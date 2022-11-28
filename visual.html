@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+<body>
+  <div id="sidebar-suppressed" class="container hidden">
+    <div class="flex rows">
+      <div class="spacer"></div>
+      <button id="sidebar-button-expand" class="icon light solid">
+        <span class="material-symbols-outlined"> arrow_forward_ios </span>
+      </button>
+    </div>
+  </div>
+  <div id="app">
+    <div id="sidebar" class="show">
+      <div class="container">
+        <div class="flex rows">
+          <div class="spacer"></div>
+          <button id="sidebar-button-close" class="icon dark">
+            <span class="material-symbols-outlined"> close </span>
+          </button>
+        </div>
+        <h4 style="margin:1.5rem 0 1rem"><a href="https://universe.roboflow.com/roboflow-100">Roboflow 100 </a> 📸</h4>
+        <div>
+          <div class="flex cols tall">
+            <p> 512 images sampled per dataset, then encoded with
+              <a href="https://openai.com/blog/clip/">CLIP</a> +
+              <a href="https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding">TSNE</a>.
+            </p>
+            <small>Explore the datasets by <strong>zooming</strong> and <strong>moving</strong> around the
+              mouse.</small>
+            <br />
+            <small>Dimensions</small>
+            <form>
+              <input type="checkbox" id="dims-2d" name="dims-2d" value="dims-2d" checked />
+              <label for="dims-2d">2D</label><br />
+              <input type="checkbox" id="dims-3d" name="dims-3d" value="dims-3d" />
+              <label for="dims-3d">3D</label><br />
+              <small>Dataset</small><br />
+              <select id="dataset-selector" name="dataset-selecto" value="All">
+                <option value="all">all</option>
+              </select>
+            </form>
+            <!-- uv map is kinda of wrong since I have specular images -->
+            <img id="current-image" src="" style="transform: scaleX(-1);" />
+            <br />
+            <div>
+              <button id="reset-camera" class="solid">Reset camera</button>
+            </div>
+            <br /><br />
+            <div class="spacer"></div>
+            <small>Hosted with 💜 by
+              <a href="https://roboflow.com/">Roboflow</a></small>
+          </div>
+        </div>
+      </div>
+    </div>
+    <canvas id="canvas" />
+  </div>
+</body>
+<style>
+  @import url("https://fonts.googleapis.com/css?family=Poppins:400");
+
+  :root {
+    --primary: #5400ec;
+    --primary-shade: #4200b9;
+  }
+
+  html {
+    font-size: 100%;
+  }
+
+  /*16px*/
+
+  body {
+    background: white;
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    line-height: 1.75;
+    color: #000000;
+  }
+
+  p {
+    margin-bottom: 1rem;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    margin: 3rem 0 1.38rem;
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    line-height: 1.3;
+  }
+
+  h1 {
+    margin-top: 0;
+    font-size: 4.209rem;
+  }
+
+  h2 {
+    font-size: 3.157rem;
+  }
+
+  h3 {
+    font-size: 2.369rem;
+  }
+
+  h4 {
+    font-size: 1.777rem;
+  }
+
+  h5 {
+    font-size: 1.333rem;
+  }
+
+  small,
+  .text_small {
+    font-size: 0.75rem;
+  }
+
+  @keyframes hide {
+    from {
+      transform: translate(0, 0);
+    }
+
+    to {
+      transform: translate(-385px, 0);
+    }
+  }
+
+  @keyframes show {
+    from {
+      transform: translate(-385px, 0);
+    }
+
+    to {
+      transform: translate(0, 0);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      transform: opacity(0);
+    }
+
+    to {
+      transform: opacity(1);
+    }
+  }
+
+  body {
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    line-height: 1.75;
+    color: #000000;
+    max-height: 100vh;
+    line-height: 1.75;
+    background-color: #202020;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  #app {
+    background-color: #202020;
+  }
+
+  /* #sidebar-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100vh;
+  } */
+
+  #sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: min(384px, 100vw);
+    height: 100vh;
+    background-color: white;
+    overflow-y: auto;
+  }
+
+  #sidebar.hide {
+    animation: hide 0.5s forwards;
+  }
+
+  #sidebar.show {
+    animation: show 0.5s forwards;
+  }
+
+  #sidebar-suppressed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+  }
+
+  #current-image {
+    margin-top: 1rem;
+  }
+
+  br {
+    margin: 0.5rem;
+  }
+
+  #canvas {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  #dataset-selector {
+    min-width: 150px;
+  }
+
+  .container {
+    padding: 32px;
+  }
+
+  .tall {
+    position: relative;
+    height: 100%;
+  }
+
+  .flex {
+    display: flex;
+  }
+
+  .cols {
+    flex-direction: column;
+  }
+
+  .rows {
+    flex-direction: row;
+  }
+
+  .spacer {
+    flex: 1 1;
+  }
+
+  .columns {
+    flex-direction: column;
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 800, "GRAD" 0, "opsz" 48;
+  }
+
+  .dark {
+    color: black;
+  }
+
+  .light {
+    color: white;
+  }
+
+  .icon:hover {
+    opacity: 0.4;
+  }
+
+  .card {
+    border-radius: 2rem;
+  }
+
+  button,
+  button:focus {
+    outline: none;
+    /* background: transparent; */
+    border: 1px solid transparent;
+  }
+
+  button:active {
+    outline: none;
+    /* background: transparent; */
+  }
+
+  button.solid {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background-color: var(--primary);
+    color: white;
+  }
+
+  button.solid:hover {
+    background-color: var(--primary-shade);
+    /* color: white; */
+  }
+
+  button.solid:active {
+    background-color: var(--primary);
+    /* color: white; */
+  }
+
+  button.icon {
+    display: flex;
+    background: transparent;
+    font-size: 1rem;
+    padding: 0.25rem;
+  }
+
+  button.icon.light.solid {
+    background: #555555;
+    border-radius: 50%;
+  }
+
+  button.icon.dark:hover {
+    background: #e7eaee;
+    border-radius: 50%;
+  }
+
+  button.icon.light:hover {
+    background: black;
+    border-radius: 50%;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  input {
+    accent-color: var(--primary);
+  }
+</style>
+</head>
+
+<body>
+  <script src="static/js/three.js"></script>
+  <script src="static/js/trackball-controls.js"></script>
+  <script src="static/js/plot.js"></script>
+</body>
+
+</html>
