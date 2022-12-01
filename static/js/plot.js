@@ -7,7 +7,8 @@ var config = {
     atlas: { width: 2048, height: 1024, cols: 32, rows: 16 },
     addZNoise: true
 }
-
+// for rf100
+const WORKSPACE_ID = "pwYAXv9BTpqLyFfgQoPZ"
 // scene setup
 const canvas = document.querySelector("#canvas")
 const scene = new THREE.Scene();
@@ -23,8 +24,11 @@ var namesTomeshes = {};
 // inverse map, useful for fast look up
 var meshesToNames = {};
 
-function toogleLoader() {
-
+function getImageUrlFromImageName(imageName) {
+    // imageName is something like Scanning_Nematic_Vance_Williams_IG00011_jpg.rf.24320a90f335bd4b7f4afab04f97dfe5"
+    const imageNameSplitted = imageName.split('.')
+    const transformId = imageNameSplitted[imageNameSplitted.length - 1]
+    return `https://storage.googleapis.com/roboflow-platform-transforms/${WORKSPACE_ID}/${transformId}/transformed.jpg`
 }
 
 function getRandomInt() {
@@ -137,16 +141,16 @@ function loadDatasets({ dims }, datasets) {
     while (scene.children.length > 0) {
         scene.remove(scene.children[0]);
     }
-    
-    for (let dataset of datasets) {
-        console.info(`Loading ${dataset}`)
-        fetch(`static/montages/${dataset}/reduced-tsne-k=${dims}-points.json`)
+    console.log(datasets)
+    for (let dataset of Object.values(datasets)) {
+        console.info(`Loading ${dataset.name}`)
+        fetch(`static/montages/${dataset.name}/reduced-tsne-k=${dims}-points.json`)
             .then((response) => response.json())
             .then((json) => config.addZNoise ? addZNoise(json) : json)
             .then((json) => {
-                mesh = addMeshForAtlas(json, `static/montages/${dataset}/2048-img-atlas_compressed.jpg`)
-                namesTomeshes[dataset] = mesh
-                meshesToNames[mesh.id] = dataset
+                mesh = addMeshForAtlas(json, `static/montages/${dataset.name}/2048-img-atlas_compressed.jpg`)
+                namesTomeshes[dataset.name] = mesh
+                meshesToNames[mesh.id] = dataset.name
             });
     }
 }
@@ -178,7 +182,6 @@ function setupThreeJS(datasets) {
     scene.background = new THREE.Color("#202020");
     camera.position.set(cameraNewPosition.x, cameraNewPosition.y, cameraNewPosition.z);
     renderer.setSize(window.innerWidth, window.innerHeight, false);
-
     loadDatasets(config, datasets)
 
     window.addEventListener('resize', function () {
@@ -271,10 +274,10 @@ function setUpUIControllers(datasets) {
     const selector = document.querySelector("#dataset-selector")
     const currentImage = document.querySelector("#current-image")
 
-    for (let dataset of datasets) {
+    for (let dataset of Object.values(datasets)) {
         const option = document.createElement('option');
-        option.value = dataset;
-        option.innerHTML = dataset;
+        option.value = dataset.name;
+        option.innerHTML = dataset.name;
         selector.appendChild(option);
     }
 
@@ -300,7 +303,7 @@ function setUpUIControllers(datasets) {
                 const mesh = namesTomeshes[newSelectedDataset]
                 // camera.position.set(5, 1, 10000);
                 console.info(`Switched to ${newSelectedDataset}`)
-                currentImage.src = `static/montages/${selectedDataset}/images/0.jpeg`
+                currentImage.src = ""
             }
         })
     let raycaster = new THREE.Raycaster();
@@ -348,7 +351,8 @@ function setUpUIControllers(datasets) {
             let meshName = meshesToNames[intersects[0].object.id]
             // dive by two since each image is 2 triangles
             const imageIdx = Math.floor(intersects[0].faceIndex / 2)
-            currentImage.src = `static/montages/${meshName}/images-640/${imageIdx}.jpeg`
+            currentImage.src = getImageUrlFromImageName(datasets[meshName].imagesIndecesToNames[imageIdx])
+            // currentImage.src = `static/montages/${meshName}/images-640/${imageIdx}.jpeg`
             selector.value = meshName
         }
     }
@@ -367,12 +371,29 @@ function setUpUIControllers(datasets) {
 
 }
 
+
+
 function setUp() {
+    let datasetsMetadata = {}
     fetch(`static/datasets.json`)
         .then((response) => response.json())
         .then((datasets) => {
-            setupThreeJS(datasets)
-            setUpUIControllers(datasets)
+            for (let dataset of datasets) {
+                fetch(`static/montages/${dataset}/images_ids_to_names.json`)
+                    .then(response => response.json())
+                    .then(response => {
+                        datasetsMetadata[dataset] = {
+                            name: dataset,
+                            imagesIndecesToNames: response
+                        }
+                        const isTheLastOne = datasets.length == Object.keys(datasetsMetadata).length
+                        if (isTheLastOne) {
+                            console.log(datasetsMetadata)
+                            setupThreeJS(datasetsMetadata)
+                            setUpUIControllers(datasetsMetadata)
+                        }
+                    })
+            }
         })
 
 }
