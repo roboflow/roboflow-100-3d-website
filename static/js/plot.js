@@ -137,7 +137,7 @@ function loadDatasets({ dims }, datasets) {
     while (scene.children.length > 0) {
         scene.remove(scene.children[0]);
     }
-
+    
     for (let dataset of datasets) {
         console.info(`Loading ${dataset}`)
         fetch(`static/montages/${dataset}/reduced-tsne-k=${dims}-points.json`)
@@ -166,13 +166,11 @@ function findCenter(object) {
 
 function flyTo(object) {
     var center = findCenter(object)
-
     const objectInWorldPosition = object.localToWorld(center)
     const objectInCameraPosition = camera.worldToLocal(objectInWorldPosition)
     console.log(objectInWorldPosition, camera.localToWorld(camera.position.clone()))
     camera.position.set(objectInCameraPosition.x, objectInCameraPosition.y, objectInCameraPosition)
     camera.lookAt(object)
-    // console.log(objectPosition, camera.position)
     controls.update()
 }
 
@@ -344,14 +342,13 @@ function setUpUIControllers(datasets) {
     })
     // show image on the sidebar on hover 
     const handleMouseMove = (e) => {
-        console.log('asddsa')
         const intersects = getInteresectedObject(e)
         if (intersects.length > 0) {
             // hide the others by dispacthing event to selector
             let meshName = meshesToNames[intersects[0].object.id]
             // dive by two since each image is 2 triangles
             const imageIdx = Math.floor(intersects[0].faceIndex / 2)
-            currentImage.src = `static/montages/${meshName}/images/${imageIdx}.jpeg`
+            currentImage.src = `static/montages/${meshName}/images-640/${imageIdx}.jpeg`
             selector.value = meshName
         }
     }
@@ -372,7 +369,6 @@ function setUpUIControllers(datasets) {
 
 function setUp() {
     fetch(`static/datasets.json`)
-        // fetch(`datasets_dummy.json`)
         .then((response) => response.json())
         .then((datasets) => {
             setupThreeJS(datasets)
