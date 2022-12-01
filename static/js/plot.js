@@ -348,7 +348,7 @@ function setUpUIControllers(datasets) {
             let meshName = meshesToNames[intersects[0].object.id]
             // dive by two since each image is 2 triangles
             const imageIdx = Math.floor(intersects[0].faceIndex / 2)
-            currentImage.src = `static/montages/${meshName}/images/${imageIdx}-640.jpeg`
+            currentImage.src = `static/montages/${meshName}/images-640/${imageIdx}.jpeg`
             selector.value = meshName
         }
     }
