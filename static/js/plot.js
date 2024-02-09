@@ -28,7 +28,7 @@ function getImageUrlFromImageName(imageName) {
     // imageName is something like Scanning_Nematic_Vance_Williams_IG00011_jpg.rf.24320a90f335bd4b7f4afab04f97dfe5"
     const imageNameSplitted = imageName.split('.')
     const transformId = imageNameSplitted[imageNameSplitted.length - 1]
-    return `https://storage.googleapis.com/roboflow-platform-transforms/${WORKSPACE_ID}/${transformId}/transformed.jpg`
+    return `https://transform.roboflow.com/${WORKSPACE_ID}/${transformId}/transformed.jpg`
 }
 
 function getRandomInt() {
